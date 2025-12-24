@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -49,6 +50,10 @@ func (th *TaskHandler) Create(w http.ResponseWriter, r *http.Request) {
 	task, err := th.storage.Create(createTask)
 
 	if err != nil {
+		if errors.Is(err, storage.InvalidTaskData) {
+			respondWithError(w, http.StatusBadRequest, err.Error())
+			return
+		}
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
