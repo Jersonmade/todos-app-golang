@@ -31,12 +31,12 @@ func respondWithError(w http.ResponseWriter, statusCode int, message string) {
 	respondWithJSON(w, statusCode, map[string]string{"error": message})
 }
 
-func (th *TaskHandler) Create(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
+func convertIDFromPath(r *http.Request) (int, error) {
+	taskIdStr := strings.TrimPrefix(r.URL.Path, "/todos/")
+	return strconv.Atoi(taskIdStr)
+}
 
+func (th *TaskHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var createTask models.CreateTaskDTO
 
 	err := json.NewDecoder(r.Body).Decode(&createTask)
@@ -57,29 +57,16 @@ func (th *TaskHandler) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (th *TaskHandler) GetAll(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
 	tasks := th.storage.GetAll()
 
 	respondWithJSON(w, http.StatusOK, tasks)
 }
 
 func (th *TaskHandler) Get(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	pathParts := strings.Split(strings.TrimPrefix(r.URL.Path, "/tasks/"), "/")
-	taskIdStr := pathParts[0]
-
-	taskId, err := strconv.Atoi(taskIdStr)
+	taskId, err := convertIDFromPath(r)
 
 	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "Некорректный ID задачи")
+		respondWithError(w, http.StatusBadRequest, "Invalid task id")
 		return
 	}
 
@@ -94,18 +81,10 @@ func (th *TaskHandler) Get(w http.ResponseWriter, r *http.Request) {
 }
 
 func (th *TaskHandler) Update(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPut {
-		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	pathParts := strings.Split(strings.TrimPrefix(r.URL.Path, "/tasks/"), "/")
-	taskIdStr := pathParts[0]
-
-	taskId, err := strconv.Atoi(taskIdStr)
+	taskId, err := convertIDFromPath(r)
 
 	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "Некорректный ID задачи")
+		respondWithError(w, http.StatusBadRequest, "Invalid task id")
 		return
 	}
 
@@ -129,18 +108,10 @@ func (th *TaskHandler) Update(w http.ResponseWriter, r *http.Request) {
 }
 
 func (th *TaskHandler) Delete(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodDelete {
-		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	pathParts := strings.Split(strings.TrimPrefix(r.URL.Path, "/tasks/"), "/")
-	taskIdStr := pathParts[0]
-
-	taskId, err := strconv.Atoi(taskIdStr)
+	taskId, err := convertIDFromPath(r)
 
 	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "Некорректный ID задачи")
+		respondWithError(w, http.StatusBadRequest, "Invalid task id")
 		return
 	}
 

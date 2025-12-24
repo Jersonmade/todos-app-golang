@@ -13,15 +13,15 @@ var (
 )
 
 type MemoryStorage struct {
-	tasks      map[int]models.Task
-	nextTaskId int
-	mu         sync.RWMutex
+	tasks         map[int]models.Task
+	currentTaskId int
+	mu            sync.RWMutex
 }
 
 func NewMemoryStorage() CRUDRepository {
 	return &MemoryStorage{
-		tasks:      make(map[int]models.Task),
-		nextTaskId: 1,
+		tasks:         make(map[int]models.Task),
+		currentTaskId: 1,
 	}
 }
 
@@ -34,14 +34,14 @@ func (ms *MemoryStorage) Create(createTaskDto models.CreateTaskDTO) (models.Task
 	defer ms.mu.Unlock()
 
 	task := models.Task{
-		TaskID:      ms.nextTaskId,
+		TaskID:      ms.currentTaskId,
 		Title:       createTaskDto.Title,
 		Description: createTaskDto.Description,
 		Completed:   false,
 	}
 
 	ms.tasks[task.TaskID] = task
-	ms.nextTaskId++
+	ms.currentTaskId++
 
 	return task, nil
 }
