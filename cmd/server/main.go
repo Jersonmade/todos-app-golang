@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"log"
 	"net/http"
 	"os"
@@ -53,11 +54,11 @@ func main() {
 	signal.Notify(signalCh, os.Interrupt, syscall.SIGTERM)
 
 	go func() {
+		log.Println("Server up...")
 		err := server.ListenAndServe()
 
-		if err != nil {
-			log.Println("Server up...")
-			log.Fatal("Error up server", err)
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
+			log.Println("Error up server", err)
 		}
 	}()
 
